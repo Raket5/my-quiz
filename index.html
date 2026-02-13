@@ -22,13 +22,14 @@
         #quiz-section, #result-section { display: none; }
         .time-text { text-align: right; font-weight: bold; color: var(--danger); margin-bottom: 5px; }
         .loading { text-align: center; color: #666; font-style: italic; }
+        #save-status { text-align: center; font-size: 0.9rem; margin-top: 10px; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="quiz-container">
     <div id="auth-section">
-        <h1>কুইজ</h1>
+        <h1>কুইজ রেজিস্ট্রেশন</h1>
         <div class="form-group">
             <input type="text" id="student-name" placeholder="আপনার নাম লিখুন">
         </div>
@@ -40,7 +41,7 @@
     </div>
 
     <div id="quiz-section">
-        <div class="time-text">সময় বাকি: <span id="time-left">30</span> সেকেন্ড</div>
+        <div class="time-text">সময় বাকি: <span id="time-left">30</span> সেকেন্ড</div>
         <div class="timer-bar"><div id="progress" class="timer-progress"></div></div>
         <div class="question" id="question"></div>
         <div id="options"></div>
@@ -50,13 +51,14 @@
     <div id="result-section">
         <h1>ফলাফল</h1>
         <p id="final-stats" style="text-align:center; font-size: 1.2rem; line-height: 1.6;"></p>
-        <p id="save-status" style="text-align:center; color: #666; font-size: 0.9rem;">রেজাল্ট সেভ হচ্ছে...</p>
+        <p id="save-status">রেজাল্ট সেভ হচ্ছে...</p>
         <button class="btn" onclick="location.reload()">আবার শুরু করুন</button>
     </div>
 </div>
 
 <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=0&single=true&output=csv";
+    // আপনার শিট লিঙ্ক এবং অ্যাপ লিঙ্ক
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
     const scriptURL = "https://script.google.com/macros/s/AKfycbyMIdcbuiqq8cV3hbuDtNo4RxD2IvheZ4o69X1CkM1z-dRTJzaZ-X6psoUqQDt-JCI/exec";
 
     let quizData = [];
@@ -69,24 +71,39 @@
     async function startQuiz() {
         const name = document.getElementById('student-name').value.trim();
         const wa = document.getElementById('student-wa').value.trim();
-        if(!name || !wa) { alert("নাম ও নম্বর দিন!"); return; }
+        if(!name || !wa) { alert("দয়া করে নাম এবং নম্বর দিন!"); return; }
         
-        document.getElementById('start-btn').disabled = true;
-        document.getElementById('loading-msg').style.display = 'block';
+        const startBtn = document.getElementById('start-btn');
+        const loadingMsg = document.getElementById('loading-msg');
+        startBtn.disabled = true;
+        loadingMsg.style.display = 'block';
 
         try {
-            const res = await fetch(sheetUrl + "&cb=" + Date.now());
+            const res = await fetch(sheetUrl + "&cachebust=" + Date.now());
             const text = await res.text();
             const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+            
             quizData = rows.slice(1).map(r => {
                 const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                return { q: c[0]?.replace(/"/g, ""), a: c[1]?.replace(/"/g, ""), b: c[2]?.replace(/"/g, ""), c: c[3]?.replace(/"/g, ""), d: c[4]?.replace(/"/g, ""), correct: c[5]?.trim().toLowerCase().replace(/"/g, "") };
-            }).filter(item => item.q);
+                return { 
+                    q: c[0]?.replace(/"/g, ""), 
+                    a: c[1]?.replace(/"/g, ""), 
+                    b: c[2]?.replace(/"/g, ""), 
+                    c: c[3]?.replace(/"/g, ""), 
+                    d: c[4]?.replace(/"/g, ""), 
+                    correct: c[5]?.trim().toLowerCase().replace(/"/g, "") 
+                };
+            }).filter(item => item.q && item.a);
 
+            if(quizData.length === 0) throw new Error("No Questions Found");
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('quiz-section').style.display = 'block';
             showQuestion();
-        } catch (e) { alert("Error loading quiz!"); }
+        } catch (e) {
+            alert("প্রশ্ন লোড করতে সমস্যা হয়েছে!");
+            startBtn.disabled = false;
+            loadingMsg.style.display = 'none';
+        }
     }
 
     function showQuestion() {
@@ -116,7 +133,6 @@
     };
 
     document.getElementById('next-btn').onclick = handleNext;
-
     function handleNext() {
         if(selectedAns === quizData[currentIndex].correct) score++;
         currentIndex++;
@@ -130,25 +146,33 @@
         
         const name = document.getElementById('student-name').value;
         const wa = document.getElementById('student-wa').value;
-        document.getElementById('final-stats').innerHTML = `নাম: ${name}<br>স্কোর: ${score} / ${quizData.length}`;
+        
+        document.getElementById('final-stats').innerHTML = `
+            <strong>নাম:</strong> ${name}<br>
+            <strong>সঠিক উত্তর:</strong> ${score} / ${quizData.length}<br>
+            <strong>স্কোর:</strong> ${((score/quizData.length)*100).toFixed(2)}%
+        `;
 
-        // গুগল শিটে ডেটা পাঠানো
-        const resultData = { name: name, phone: wa, score: score, total: quizData.length };
+        // গুগল শিটে সেভ করার ফাংশন কল
+        saveResultToSheet(name, wa, score, quizData.length);
+    }
 
+    function saveResultToSheet(name, phone, score, total) {
+        const resultData = { name: name, phone: phone, score: score, total: total };
         fetch(scriptURL, {
             method: 'POST',
             mode: 'no-cors',
             cache: 'no-cache',
             body: JSON.stringify(resultData)
         }).then(() => {
-            document.getElementById('save-status').innerText = "রেজাল্ট শিটে সেভ করা হয়েছে!";
+            document.getElementById('save-status').innerText = "রেজাল্ট শিটে সেভ করা হয়েছে!";
             document.getElementById('save-status').style.color = "green";
         }).catch(err => {
-            document.getElementById('save-status').innerText = "সেভ করতে সমস্যা হয়েছে।";
+            document.getElementById('save-status').innerText = "সেভ করতে ত্রুটি হয়েছে।";
+            document.getElementById('save-status').style.color = "red";
         });
     }
 </script>
 
 </body>
 </html>
-
