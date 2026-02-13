@@ -50,13 +50,14 @@
     <div id="result-section">
         <h1>ফলাফল</h1>
         <p id="final-stats" style="text-align:center; font-size: 1.2rem; line-height: 1.6;"></p>
+        <p id="save-status" style="text-align:center; color: #666; font-size: 0.9rem;">রেজাল্ট সেভ হচ্ছে...</p>
         <button class="btn" onclick="location.reload()">আবার শুরু করুন</button>
     </div>
 </div>
 
 <script>
-    // এখানে আপনার Day1 এর পূর্ণাঙ্গ CSV লিঙ্কটি দিন (যাতে gid=0 আছে)
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=0&single=true&output=csv";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyMIdcbuiqq8cV3hbuDtNo4RxD2IvheZ4o69X1CkM1z-dRTJzaZ-X6psoUqQDt-JCI/exec";
 
     let quizData = [];
     let currentIndex = 0;
@@ -68,57 +69,29 @@
     async function startQuiz() {
         const name = document.getElementById('student-name').value.trim();
         const wa = document.getElementById('student-wa').value.trim();
+        if(!name || !wa) { alert("নাম ও নম্বর দিন!"); return; }
         
-        if(!name || !wa) { alert("দয়া করে নাম এবং নম্বর দিন!"); return; }
-        
-        const startBtn = document.getElementById('start-btn');
-        const loadingMsg = document.getElementById('loading-msg');
-        
-        startBtn.disabled = true;
-        loadingMsg.style.display = 'block';
+        document.getElementById('start-btn').disabled = true;
+        document.getElementById('loading-msg').style.display = 'block';
 
         try {
-            // ক্যাশ এড়াতে timestamp যোগ করা হয়েছে
-            const res = await fetch(sheetUrl + "&cachebust=" + Date.now());
+            const res = await fetch(sheetUrl + "&cb=" + Date.now());
             const text = await res.text();
-            
-            // CSV রো গুলোকে অ্যারেতে রূপান্তর
             const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
-            
-            // প্রথম রো (Header) বাদ দিয়ে ডেটা নেওয়া
             quizData = rows.slice(1).map(r => {
-                // কমার ভেতরের ডেটা হ্যান্ডেল করার জন্য Regex
                 const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                return { 
-                    q: c[0]?.replace(/"/g, ""), 
-                    a: c[1]?.replace(/"/g, ""), 
-                    b: c[2]?.replace(/"/g, ""), 
-                    c: c[3]?.replace(/"/g, ""), 
-                    d: c[4]?.replace(/"/g, ""), 
-                    correct: c[5]?.trim().toLowerCase().replace(/"/g, "") 
-                };
-            }).filter(item => item.q && item.a);
-
-            if(quizData.length === 0) throw new Error("No Questions Found");
+                return { q: c[0]?.replace(/"/g, ""), a: c[1]?.replace(/"/g, ""), b: c[2]?.replace(/"/g, ""), c: c[3]?.replace(/"/g, ""), d: c[4]?.replace(/"/g, ""), correct: c[5]?.trim().toLowerCase().replace(/"/g, "") };
+            }).filter(item => item.q);
 
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('quiz-section').style.display = 'block';
             showQuestion();
-
-        } catch (e) {
-            alert("প্রশ্ন লোড করতে সমস্যা হয়েছে! শিটটি 'Publish to Web' করা আছে কি না চেক করুন।");
-            startBtn.disabled = false;
-            loadingMsg.style.display = 'none';
-        }
+        } catch (e) { alert("Error loading quiz!"); }
     }
 
     function showQuestion() {
         if(currentIndex >= quizData.length) { endQuiz(); return; }
-        
-        selectedAns = "";
-        timeLeft = 30;
-        updateTimerUI();
-        
+        selectedAns = ""; timeLeft = 30; updateTimerUI();
         const data = quizData[currentIndex];
         document.getElementById('question').innerText = `${currentIndex + 1}. ${data.q}`;
         document.getElementById('options').innerHTML = `
@@ -127,19 +100,13 @@
             <div class="option" onclick="selectOpt('c', this)">C) ${data.c}</div>
             <div class="option" onclick="selectOpt('d', this)">D) ${data.d}</div>
         `;
-
         clearInterval(timer);
-        timer = setInterval(() => {
-            timeLeft--;
-            updateTimerUI();
-            if(timeLeft <= 0) handleNext();
-        }, 1000);
+        timer = setInterval(() => { timeLeft--; updateTimerUI(); if(timeLeft <= 0) handleNext(); }, 1000);
     }
 
     function updateTimerUI() {
         document.getElementById('time-left').innerText = timeLeft;
-        const percent = (timeLeft / 30) * 100;
-        document.getElementById('progress').style.width = percent + "%";
+        document.getElementById('progress').style.width = (timeLeft / 30) * 100 + "%";
     }
 
     window.selectOpt = (val, el) => {
@@ -151,9 +118,7 @@
     document.getElementById('next-btn').onclick = handleNext;
 
     function handleNext() {
-        if(selectedAns === quizData[currentIndex].correct) {
-            score++;
-        }
+        if(selectedAns === quizData[currentIndex].correct) score++;
         currentIndex++;
         showQuestion();
     }
@@ -162,17 +127,27 @@
         clearInterval(timer);
         document.getElementById('quiz-section').style.display = 'none';
         document.getElementById('result-section').style.display = 'block';
+        
         const name = document.getElementById('student-name').value;
-        document.getElementById('final-stats').innerHTML = `
-            <strong>নাম:</strong> ${name}<br>
-            <strong>মোট প্রশ্ন:</strong> ${quizData.length}<br>
-            <strong>সঠিক উত্তর:</strong> ${score}<br>
-            <strong>স্কোর:</strong> ${((score/quizData.length)*100).toFixed(2)}%
-        `;
+        const wa = document.getElementById('student-wa').value;
+        document.getElementById('final-stats').innerHTML = `নাম: ${name}<br>স্কোর: ${score} / ${quizData.length}`;
+
+        // গুগল শিটে ডেটা পাঠানো
+        const resultData = { name: name, phone: wa, score: score, total: quizData.length };
+
+        fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            body: JSON.stringify(resultData)
+        }).then(() => {
+            document.getElementById('save-status').innerText = "রেজাল্ট শিটে সেভ করা হয়েছে!";
+            document.getElementById('save-status').style.color = "green";
+        }).catch(err => {
+            document.getElementById('save-status').innerText = "সেভ করতে সমস্যা হয়েছে।";
+        });
     }
 </script>
 
 </body>
 </html>
-
-
