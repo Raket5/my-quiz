@@ -3,71 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>আমার কম্পিউটার কুইজ</title>
+    <title>গুগল শিট কুইজ</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
-        .quiz-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
-        h1 { text-align: center; color: #333; }
-        .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; }
-        .option { display: block; background: #e7e7e7; margin: 10px 0; padding: 10px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-        .option:hover { background: #ddd; }
-        .selected { background: #3498db !important; color: white; }
-        #submit-btn { width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; margin-top: 10px; }
-        #result { margin-top: 20px; text-align: center; font-size: 1.2rem; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .quiz-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 25px; }
+        .question { font-size: 1.3rem; margin-bottom: 20px; font-weight: 600; color: #333; }
+        .option { display: block; background: #ffffff; border: 2px solid #e0e0e0; margin: 12px 0; padding: 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .option:hover { background: #f8f9fa; border-color: #1a73e8; }
+        .selected { background: #e8f0fe !important; border-color: #1a73e8 !important; color: #1a73e8; font-weight: bold; }
+        #submit-btn { width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1rem; margin-top: 20px; font-weight: bold; }
+        #submit-btn:hover { background: #1557b0; }
+        #result { margin-top: 25px; text-align: center; font-size: 1.5rem; font-weight: bold; color: #2ecc71; }
+        .loading { text-align: center; font-style: italic; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="quiz-container">
-    <h1>কম্পিউটার কুইজ</h1>
+    <h1>কম্পিউটার কুইজ (Day 1)</h1>
     <div id="quiz-content">
-        <div class="question" id="question">প্রশ্ন লোড হচ্ছে...</div>
+        <div id="loading" class="loading">গুগল শিট থেকে প্রশ্ন লোড হচ্ছে...</div>
+        <div class="question" id="question"></div>
         <div id="options-container"></div>
-        <button id="submit-btn">পরের প্রশ্ন</button>
+        <button id="submit-btn" style="display:none;">পরের প্রশ্ন</button>
     </div>
     <div id="result"></div>
 </div>
 
 <script>
-    // আপনার দেওয়া সেই ডেটাগুলো এখানে সেট করা হয়েছে
-    const quizData = [
-        { q: "কম্পিউটারের পুরো নাম কী?", a: "Common Operating Machine Particularly Used for Trade Education and Research", b: "Commonly Operated Machines People Use for Technical and Educational Research", c: "Commonly Operated Machine Particularly Used for Technical Education and Research", d: "কোনোটাই না", correct: "a" },
-        { q: "RAM এর পুরো নাম কী?", a: "Random Access Memory", b: "Read Access Memory", c: "Run Access Memory", d: "Random Available Memory", correct: "a" },
-        { q: "কম্পিউটারের মূল অংশ যেটাকে 'ব্রেইন' বলা হয়?", a: "RAM", b: "Hard Disk", c: "CPU", d: "Monitor", correct: "c" },
-        { q: "কোনটি ইনপুট ডিভাইস?", a: "Monitor", b: "Printer", c: "Keyboard", d: "Speaker", correct: "c" },
-        { q: "অপারেটিং সিস্টেম কোন ধরনের সফটওয়্যার?", a: "Application Software", b: "System Software", c: "Utility Software", d: "Productivity Software", correct: "b" }
-        // আপনি চাইলে এখানে আরও প্রশ্ন যোগ করতে পারেন
-    ];
+    // আপনার দেওয়া লিঙ্কে ছোট পরিবর্তন করে CSV ফরম্যাটে নেওয়া হয়েছে
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=0&single=true&output=csv";
 
+    let quizData = [];
     let currentQuestionIndex = 0;
     let score = 0;
+    let selectedAnswer = "";
 
-    const questionEl = document.getElementById('question');
-    const optionsContainer = document.getElementById('options-container');
-    const submitBtn = document.getElementById('submit-btn');
-    const resultEl = document.getElementById('result');
+    // গুগল শিট থেকে ডেটা আনার ফাংশন
+    async function fetchQuizData() {
+        try {
+            const response = await fetch(sheetUrl);
+            const data = await response.text();
+            
+            // CSV ডেটাকে বিন্যাস করা (Rows and Columns)
+            const rows = data.split('\n').slice(1); // প্রথম সারি (Header) বাদ দিয়ে
+            quizData = rows.map(row => {
+                const cols = row.split(',');
+                return {
+                    q: cols[0],
+                    a: cols[1],
+                    b: cols[2],
+                    c: cols[3],
+                    d: cols[4],
+                    correct: cols[5] ? cols[5].trim().toLowerCase() : ""
+                };
+            }).filter(item => item.q); // খালি রো বাদ দেওয়া
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'block';
+            loadQuiz();
+        } catch (error) {
+            document.getElementById('loading').innerText = "ডেটা লোড করতে সমস্যা হয়েছে। দয়া করে শিটটি Public কিনা চেক করুন।";
+        }
+    }
 
     function loadQuiz() {
+        if (currentQuestionIndex >= quizData.length) {
+            showResult();
+            return;
+        }
+        
         const currentData = quizData[currentQuestionIndex];
-        questionEl.innerText = `${currentQuestionIndex + 1}. ${currentData.q}`;
-        optionsContainer.innerHTML = `
-            <div class="option" onclick="selectOption('a')">A) ${currentData.a}</div>
-            <div class="option" onclick="selectOption('b')">B) ${currentData.b}</div>
-            <div class="option" onclick="selectOption('c')">C) ${currentData.c}</div>
-            <div class="option" onclick="selectOption('d')">D) ${currentData.d}</div>
+        document.getElementById('question').innerText = `${currentQuestionIndex + 1}. ${currentData.q}`;
+        document.getElementById('options-container').innerHTML = `
+            <div class="option" onclick="selectOption('a', this)">A) ${currentData.a}</div>
+            <div class="option" onclick="selectOption('b', this)">B) ${currentData.b}</div>
+            <div class="option" onclick="selectOption('c', this)">C) ${currentData.c}</div>
+            <div class="option" onclick="selectOption('d', this)">D) ${currentData.d}</div>
         `;
     }
 
-    let selectedAnswer = "";
-    function selectOption(ans) {
+    window.selectOption = function(ans, element) {
         selectedAnswer = ans;
         const options = document.querySelectorAll('.option');
         options.forEach(opt => opt.classList.remove('selected'));
-        event.target.classList.add('selected');
+        element.classList.add('selected');
     }
 
-    submitBtn.addEventListener('click', () => {
-        if (selectedAnswer === "") {
+    document.getElementById('submit-btn').addEventListener('click', () => {
+        if (!selectedAnswer) {
             alert("দয়া করে একটি উত্তর সিলেক্ট করুন!");
             return;
         }
@@ -78,16 +103,15 @@
 
         currentQuestionIndex++;
         selectedAnswer = "";
-
-        if (currentQuestionIndex < quizData.length) {
-            loadQuiz();
-        } else {
-            document.getElementById('quiz-content').style.display = 'none';
-            resultEl.innerText = `আপনার স্কোর: ${score} / ${quizData.length}`;
-        }
+        loadQuiz();
     });
 
-    loadQuiz();
+    function showResult() {
+        document.getElementById('quiz-content').style.display = 'none';
+        document.getElementById('result').innerText = `আপনার মোট স্কোর: ${score} / ${quizData.length}`;
+    }
+
+    fetchQuizData();
 </script>
 
 </body>
