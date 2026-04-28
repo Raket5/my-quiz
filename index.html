@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT1</title>
+    <title>ICT2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -68,9 +68,10 @@
 </div>
 
 <script>
-    // আপনার লিঙ্কগুলো এখানে আপডেট করা হয়েছে
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyHNFMm3xFw8XBnISvkBhkzFUH5nFD1rkPz9KwM_9m0wg2J1FeTt5ugSMLnv_zYEiR/exec";
+    
+    // আপনার নতুন Web App URL টি এখানে আপডেট করা হয়েছে
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq8IC-AdaaqAYDrrO21DlPCv5ruRiwGg4Vq7Spggh7rrj3_hAGzJ3wklYRBcEuczrh/exec";
 
     let questions = [];
     let currentIndex = 0;
@@ -200,13 +201,12 @@
 
         const percent = ((userScore / questions.length) * 100).toFixed(2);
         document.getElementById('resultBox').innerHTML = `
-            <p><strong>নাম:</strong> ${studentName}</p>
-            <p><strong>WhatsApp:</strong> ${studentPhone}</p>
-            <p><strong>সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
-            <p><strong>স্কোর:</strong> <span class="score">${percent}%</span></p>
+            <p><strong>👤 নাম:</strong> ${studentName}</p>
+            <p><strong>📞 WhatsApp:</strong> ${studentPhone}</p>
+            <p><strong>✅ সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
+            <p><strong>📊 স্কোর:</strong> <span class="score">${percent}%</span></p>
         `;
 
-        // Apps Script এ রেজাল্ট সেভ করার রিকোয়েস্ট
         fetch(SCRIPT_URL, {
             method: "POST",
             mode: "no-cors",
