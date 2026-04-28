@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT Quiz</title>
+    <title>ICT Quiz Day</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -86,6 +86,14 @@
             padding: 20px;
             color: #666;
         }
+        .error-box {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -118,6 +126,7 @@
 </div>
 
 <script>
+    // ✅ সঠিক CSV লিংক (এটা পরিবর্তন করবেন না)
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/export?format=csv&gid=1317046795";
     
     let questions = [];
@@ -138,63 +147,86 @@
             return;
         }
         
-        document.getElementById('loadMsg').classList.remove('hidden');
-        document.querySelector('#loginPage button').disabled = true;
+        const loadMsg = document.getElementById('loadMsg');
+        const startBtn = document.querySelector('#loginPage button');
+        
+        loadMsg.classList.remove('hidden');
+        startBtn.disabled = true;
+        startBtn.innerText = "লোড হচ্ছে...";
         
         try {
+            console.log("লোড হচ্ছে:", CSV_URL);
             const response = await fetch(CSV_URL + "?t=" + Date.now());
+            
+            if(!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
             const csvData = await response.text();
+            console.log("CSV ডাটা লোড হয়েছে, সাইজ:", csvData.length);
             
             const rows = csvData.split('\n').filter(row => row.trim());
+            console.log("মোট লাইন:", rows.length);
+            
+            if(rows.length < 2) {
+                throw new Error("শীটে কোন ডাটা নেই");
+            }
+            
             questions = [];
             
             for(let i = 1; i < rows.length; i++) {
-                const cols = parseCSVLine(rows[i]);
-                if(cols.length >= 6 && cols[0].trim()) {
+                const line = rows[i];
+                const cols = [];
+                let current = "";
+                let inQuotes = false;
+                
+                for(let ch of line) {
+                    if(ch === '"') {
+                        inQuotes = !inQuotes;
+                    } else if(ch === ',' && !inQuotes) {
+                        cols.push(current.trim());
+                        current = "";
+                    } else {
+                        current += ch;
+                    }
+                }
+                cols.push(current.trim());
+                
+                if(cols.length >= 6 && cols[0]) {
+                    const clean = (s) => s.replace(/^"|"$/g, '');
                     questions.push({
-                        text: cols[0].trim(),
-                        optionA: cols[1].trim(),
-                        optionB: cols[2].trim(),
-                        optionC: cols[3].trim(),
-                        optionD: cols[4].trim(),
-                        correct: cols[5].trim().toLowerCase()
+                        text: clean(cols[0]),
+                        optionA: clean(cols[1]),
+                        optionB: clean(cols[2]),
+                        optionC: clean(cols[3]),
+                        optionD: clean(cols[4]),
+                        correct: clean(cols[5]).toLowerCase()
                     });
                 }
             }
             
-            if(questions.length === 0) throw new Error("কোন প্রশ্ন নেই");
+            console.log("পাওয়া প্রশ্ন:", questions.length);
             
+            if(questions.length === 0) {
+                throw new Error("কোন প্রশ্ন খুঁজে পাওয়া যায়নি");
+            }
+            
+            // কুইজ শুরু
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('quizPage').classList.remove('hidden');
             document.getElementById('totalQ').innerText = questions.length;
             
+            currentIndex = 0;
+            userScore = 0;
             startQuiz();
             
         } catch(error) {
-            alert("❌ প্রশ্ন লোড হয়নি!\n" + error.message);
-            document.getElementById('loadMsg').classList.add('hidden');
-            document.querySelector('#loginPage button').disabled = false;
+            console.error("Error:", error);
+            alert("❌ প্রশ্ন লোড হয়নি!\n\n" + error.message + "\n\nসমাধান:\n1. শীট পাবলিক কিনা চেক করুন\n2. A:F কলামে ডাটা আছে কিনা দেখুন");
+            loadMsg.classList.add('hidden');
+            startBtn.disabled = false;
+            startBtn.innerText = "📝 পরীক্ষা শুরু করুন";
         }
-    }
-    
-    function parseCSVLine(line) {
-        const result = [];
-        let current = "";
-        let inQuotes = false;
-        
-        for(let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if(char === '"') {
-                inQuotes = !inQuotes;
-            } else if(char === ',' && !inQuotes) {
-                result.push(current);
-                current = "";
-            } else {
-                current += char;
-            }
-        }
-        result.push(current);
-        return result;
     }
     
     function startQuiz() {
@@ -209,10 +241,10 @@
         const q = questions[currentIndex];
         document.getElementById('questionText').innerHTML = `${currentIndex + 1}. ${q.text}`;
         document.getElementById('optionsList').innerHTML = `
-            <div class="option" onclick="selectOption('a', this)">🔘 A) ${q.optionA}</div>
-            <div class="option" onclick="selectOption('b', this)">🔘 B) ${q.optionB}</div>
-            <div class="option" onclick="selectOption('c', this)">🔘 C) ${q.optionC}</div>
-            <div class="option" onclick="selectOption('d', this)">🔘 D) ${q.optionD}</div>
+            <div class="option" onclick="selectOption('a', this)">🔘 A) ${escapeHtml(q.optionA)}</div>
+            <div class="option" onclick="selectOption('b', this)">🔘 B) ${escapeHtml(q.optionB)}</div>
+            <div class="option" onclick="selectOption('c', this)">🔘 C) ${escapeHtml(q.optionC)}</div>
+            <div class="option" onclick="selectOption('d', this)">🔘 D) ${escapeHtml(q.optionD)}</div>
         `;
         document.getElementById('currentQ').innerText = currentIndex + 1;
         document.getElementById('timeLeft').innerText = timeRemaining;
@@ -226,6 +258,13 @@
                 nextQuestion();
             }
         }, 1000);
+    }
+    
+    function escapeHtml(text) {
+        if(!text) return "";
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     function selectOption(answer, element) {
@@ -257,8 +296,8 @@
         const percentage = (userScore / questions.length * 100).toFixed(2);
         
         document.getElementById('resultBox').innerHTML = `
-            <p><strong>👤 নাম:</strong> ${studentName}</p>
-            <p><strong>📞 WhatsApp:</strong> ${studentPhone}</p>
+            <p><strong>👤 নাম:</strong> ${escapeHtml(studentName)}</p>
+            <p><strong>📞 WhatsApp:</strong> ${escapeHtml(studentPhone)}</p>
             <p><strong>✅ সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
             <p><strong>⭐ প্রাপ্ত নম্বর:</strong> <span class="score">${percentage}%</span></p>
         `;
@@ -283,9 +322,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            console.log("Saved");
+            console.log("রেজাল্ট সেভ হয়েছে");
         } catch(e) {
-            console.log("Save failed");
+            console.log("সেভ করতে সমস্যা হয়েছে");
         }
     }
     
