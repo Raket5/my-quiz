@@ -3,74 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT1</title>
+    <title>ICT Quiz - Day 1</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
-        }
-        .container {
-            background: white; padding: 30px; border-radius: 15px;
-            max-width: 600px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        h1 { text-align: center; color: #1a73e8; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 16px; outline: none; }
-        button {
-            width: 100%; padding: 14px; background: #1a73e8; color: white;
-            border: none; border-radius: 8px; font-size: 16px; font-weight: bold;
-            cursor: pointer; transition: 0.3s;
-        }
-        button:hover { background: #1557b0; }
-        button:disabled { background: #ccc; }
-        .timer { text-align: right; color: #dc3545; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
-        .question { font-size: 18px; font-weight: 600; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; line-height: 1.6; }
-        .option {
-            background: white; border: 2px solid #e9ecef; padding: 12px;
-            margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s;
-        }
-        .option:hover { border-color: #1a73e8; background: #f0f7ff; }
-        .selected { background: #e8f0fe !important; border-color: #1a73e8 !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; color: #fff; }
+        .container { background: #16213e; padding: 30px; border-radius: 15px; max-width: 500px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; position: relative; }
+        h1 { margin-bottom: 20px; color: #4ecca3; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: none; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 15px; background: #4ecca3; color: #1a1a2e; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #45b393; transform: translateY(-2px); }
         .hidden { display: none; }
-        .result-box { background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; line-height: 1.8; }
-        .score { font-size: 2.5em; color: #28a745; font-weight: bold; }
-        .loading { text-align: center; padding: 20px; color: #666; font-weight: bold; }
+        .timer { font-size: 20px; color: #e94560; margin-bottom: 15px; font-weight: bold; }
+        .question { background: #0f3460; padding: 20px; border-radius: 10px; margin-bottom: 20px; font-size: 18px; text-align: left; line-height: 1.5; }
+        .option { background: #fff; color: #1a1a2e; padding: 12px; margin: 10px 0; border-radius: 8px; cursor: pointer; text-align: left; transition: 0.2s; border: 2px solid transparent; }
+        .option:hover { border-color: #4ecca3; background: #f0fdf4; }
+        .selected { background: #4ecca3 !important; color: #fff !important; }
+        
+        /* Loading Animation CSS */
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #4ecca3; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-msg { color: #4ecca3; font-weight: bold; margin-top: 10px; }
+        .success-icon { font-size: 50px; color: #4ecca3; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="loginPage">
-        <h1>📚 ICT Quiz Day</h1>
-        <input type="text" id="studentName" placeholder="আপনার নাম লিখুন">
+        <h1>🎓 ICT Quiz Day</h1>
+        <input type="text" id="studentName" placeholder="আপনার নাম">
         <input type="text" id="studentPhone" placeholder="WhatsApp নম্বর">
-        <button id="startBtn" onclick="startQuiz()">📝 পরীক্ষা শুরু করুন</button>
-        <div id="loadingMsg" class="loading hidden">⏳ প্রশ্ন লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।</div>
+        <button onclick="startQuiz()">📝 পরীক্ষা শুরু করুন</button>
     </div>
 
     <div id="quizPage" class="hidden">
         <div class="timer">⏱️ সময়: <span id="timeLeft">30</span> সে.</div>
         <div class="question" id="questionText"></div>
         <div id="optionsList"></div>
-        <button onclick="nextQuestion()" style="margin-top: 15px;">➡ পরবর্তী প্রশ্ন</button>
-        <div style="text-align: center; margin-top: 15px; color: #666;">
-            প্রশ্ন <span id="currentQ">0</span> / <span id="totalQ">0</span>
-        </div>
+        <button onclick="nextQuestion()">পরবর্তী প্রশ্ন ➡</button>
+    </div>
+
+    <div id="loadingPage" class="hidden">
+        <div class="loader"></div>
+        <p class="status-msg">আপনার রেজাল্ট সেভ হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।</p>
     </div>
 
     <div id="resultPage" class="hidden">
-        <h1>🎉 ফলাফল</h1>
-        <div class="result-box" id="resultBox"></div>
-        <button onclick="location.reload()">🔄 নতুন পরীক্ষা</button>
+        <div class="success-icon">✅</div>
+        <h2 style="color: #4ecca3; margin-bottom: 15px;">Result Saved Successfully!</h2>
+        <div id="resultBox" style="font-size: 18px; line-height: 2; background: #0f3460; padding: 20px; border-radius: 10px; margin-bottom: 20px;"></div>
+        <button onclick="location.reload()">🔄 আবার পরীক্ষা দিন</button>
     </div>
 </div>
 
 <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
-    
-    // আপনার নতুন Web App URL টি এখানে আপডেট করা হয়েছে
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyA6Q4pwMgHO-N9GyPWT2eklD8a_JgCoNmkSOP0QrM_9m0wg2J1FeTt5ugSMLnv_zYEiR/exec";
 
     let questions = [];
@@ -82,101 +69,64 @@
     let studentName = "";
     let studentPhone = "";
 
-    function parseCSV(text) {
-        const rows = [];
-        const lines = text.split(/\r?\n/);
-        for (let line of lines) {
-            const cols = [];
-            let current = '';
-            let inQuotes = false;
-            for (let char of line) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) {
-                    cols.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            cols.push(current.trim());
-            if (cols[0]) rows.push(cols);
-        }
-        return rows;
-    }
-
     async function startQuiz() {
         studentName = document.getElementById('studentName').value.trim();
         studentPhone = document.getElementById('studentPhone').value.trim();
 
         if (!studentName || !studentPhone) {
-            alert("❌ অনুগ্রহ করে নাম এবং WhatsApp নম্বর দিন!");
+            alert("❌ নাম এবং মোবাইল নম্বর দিন!");
             return;
         }
 
-        const loadingMsg = document.getElementById('loadingMsg');
-        const startBtn = document.getElementById('startBtn');
-        loadingMsg.classList.remove('hidden');
-        startBtn.disabled = true;
-
         try {
-            const response = await fetch(CSV_URL + "&t=" + Date.now());
+            const response = await fetch(CSV_URL);
             const data = await response.text();
-            const rows = parseCSV(data);
-
-            questions = [];
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (row.length >= 6) {
+            const rows = data.split(/\r?\n/).map(row => row.split(','));
+            
+            for(let i=1; i<rows.length; i++) {
+                if(rows[i][0]) {
                     questions.push({
-                        text: row[0].replace(/^"|"$/g, ''),
-                        a: row[1].replace(/^"|"$/g, ''),
-                        b: row[2].replace(/^"|"$/g, ''),
-                        c: row[3].replace(/^"|"$/g, ''),
-                        d: row[4].replace(/^"|"$/g, ''),
-                        correct: row[5].replace(/^"|"$/g, '').toLowerCase().trim()
+                        q: rows[i][0].replace(/"/g, ""),
+                        a: rows[i][1].replace(/"/g, ""),
+                        b: rows[i][2].replace(/"/g, ""),
+                        c: rows[i][3].replace(/"/g, ""),
+                        d: rows[i][4].replace(/"/g, ""),
+                        ans: rows[i][5].replace(/"/g, "").toLowerCase().trim()
                     });
                 }
             }
 
-            if (questions.length === 0) throw new Error("প্রশ্ন লোড করা সম্ভব হয়নি।");
-
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('quizPage').classList.remove('hidden');
-            document.getElementById('totalQ').innerText = questions.length;
             loadQuestion();
-
-        } catch (error) {
-            alert("ভুল: " + error.message);
-            loadingMsg.classList.add('hidden');
-            startBtn.disabled = false;
+        } catch (e) {
+            alert("⚠️ প্রশ্ন লোড করা যায়নি!");
         }
     }
 
     function loadQuestion() {
         if (currentIndex >= questions.length) {
-            endQuiz();
+            submitResult();
             return;
         }
-
         selectedAnswer = null;
         timeLeft = 30;
         document.getElementById('timeLeft').innerText = timeLeft;
-
+        
         const q = questions[currentIndex];
-        document.getElementById('questionText').innerText = (currentIndex + 1) + ". " + q.text;
+        document.getElementById('questionText').innerText = (currentIndex+1) + ". " + q.q;
         document.getElementById('optionsList').innerHTML = `
-            <div class="option" onclick="selectOpt('a', this)">A) ${q.a}</div>
-            <div class="option" onclick="selectOpt('b', this)">B) ${q.b}</div>
-            <div class="option" onclick="selectOpt('c', this)">C) ${q.c}</div>
-            <div class="option" onclick="selectOpt('d', this)">D) ${q.d}</div>
+            <div class="option" onclick="selectOpt('a', this)">A. ${q.a}</div>
+            <div class="option" onclick="selectOpt('b', this)">B. ${q.b}</div>
+            <div class="option" onclick="selectOpt('c', this)">C. ${q.c}</div>
+            <div class="option" onclick="selectOpt('d', this)">D. ${q.d}</div>
         `;
-        document.getElementById('currentQ').innerText = currentIndex + 1;
 
-        if (timerInterval) clearInterval(timerInterval);
+        clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             timeLeft--;
             document.getElementById('timeLeft').innerText = timeLeft;
-            if (timeLeft <= 0) nextQuestion();
+            if(timeLeft <= 0) nextQuestion();
         }, 1000);
     }
 
@@ -187,39 +137,46 @@
     }
 
     function nextQuestion() {
-        if (selectedAnswer === questions[currentIndex].correct) {
-            userScore++;
-        }
+        if(selectedAnswer === questions[currentIndex].ans) userScore++;
         currentIndex++;
         loadQuestion();
     }
 
-    function endQuiz() {
+    async function submitResult() {
         clearInterval(timerInterval);
         document.getElementById('quizPage').classList.add('hidden');
-        document.getElementById('resultPage').classList.remove('hidden');
+        document.getElementById('loadingPage').classList.remove('hidden');
 
-        const percent = ((userScore / questions.length) * 100).toFixed(2);
-        document.getElementById('resultBox').innerHTML = `
-            <p><strong>👤 নাম:</strong> ${studentName}</p>
-            <p><strong>📞 WhatsApp:</strong> ${studentPhone}</p>
-            <p><strong>✅ সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
-            <p><strong>📊 স্কোর:</strong> <span class="score">${percent}%</span></p>
-        `;
+        const per = ((userScore / questions.length) * 100).toFixed(2);
+        
+        try {
+            // ডাটা সেভ করার রিকোয়েস্ট
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    name: studentName,
+                    phone: studentPhone,
+                    score: userScore,
+                    total: questions.length
+                })
+            });
 
-        // ডাটা পাঠানো নিশ্চিত করা হচ্ছে
-        fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name: studentName,
-                phone: studentPhone,
-                score: userScore,
-                total: questions.length
-            })
-        }).then(() => console.log("Result saved to Google Sheet"))
-          .catch(err => console.error("Error saving to sheet:", err));
+            // ৩ সেকেন্ড অপেক্ষা করানো যেন ইউজার বুঝতে পারে সেভ হচ্ছে
+            setTimeout(() => {
+                document.getElementById('loadingPage').classList.add('hidden');
+                document.getElementById('resultPage').classList.remove('hidden');
+                
+                document.getElementById('resultBox').innerHTML = `
+                    <p><strong>নাম:</strong> ${studentName}</p>
+                    <p><strong>সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
+                    <p><strong>স্কোর:</strong> ${per}%</p>
+                `;
+            }, 2500);
+
+        } catch (error) {
+            document.getElementById('loadingPage').innerHTML = "<p style='color:red'>সেভ করতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।</p>";
+        }
     }
 </script>
 </body>
