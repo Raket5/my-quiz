@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT2</title>
+    <title>ICT1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -70,8 +70,8 @@
 <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
     
-    // আপনার নতুন Web App URL টি এখানে আপডেট করা হয়েছে
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq8IC-AdaaqAYDrrO21DlPCv5ruRiwGg4Vq7Spggh7rrj3_hAGzJ3wklYRBcEuczrh/exec";
+    // আপনার নতুন Web App URL টি এখানে আপডেট করা হয়েছে
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyA6Q4pwMgHO-N9GyPWT2eklD8a_JgCoNmkSOP0QrM_9m0wg2J1FeTt5ugSMLnv_zYEiR/exec";
 
     let questions = [];
     let currentIndex = 0;
@@ -138,7 +138,7 @@
                 }
             }
 
-            if (questions.length === 0) throw new Error("প্রশ্ন লোড করা সম্ভব হয়নি।");
+            if (questions.length === 0) throw new Error("প্রশ্ন লোড করা সম্ভব হয়নি।");
 
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('quizPage').classList.remove('hidden');
@@ -207,6 +207,7 @@
             <p><strong>📊 স্কোর:</strong> <span class="score">${percent}%</span></p>
         `;
 
+        // ডাটা পাঠানো নিশ্চিত করা হচ্ছে
         fetch(SCRIPT_URL, {
             method: "POST",
             mode: "no-cors",
@@ -217,7 +218,8 @@
                 score: userScore,
                 total: questions.length
             })
-        });
+        }).then(() => console.log("Result saved to Google Sheet"))
+          .catch(err => console.error("Error saving to sheet:", err));
     }
 </script>
 </body>
