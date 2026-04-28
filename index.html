@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT Quiz Day</title>
+    <title>ICT Quiz</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -90,7 +90,6 @@
 </head>
 <body>
 <div class="container">
-    <!-- লগইন পেজ -->
     <div id="loginPage">
         <h1>📚 ICT Quiz Day</h1>
         <div class="form-group">
@@ -103,7 +102,6 @@
         <div id="loadMsg" class="loading hidden">⏳ প্রশ্ন লোড হচ্ছে...</div>
     </div>
 
-    <!-- কুইজ পেজ -->
     <div id="quizPage" class="hidden">
         <div class="timer">⏱️ বাকি সময়: <span id="timeLeft">30</span> সেকেন্ড</div>
         <div class="question" id="questionText"></div>
@@ -112,7 +110,6 @@
         <div class="counter">প্রশ্ন <span id="currentQ">0</span> / <span id="totalQ">0</span></div>
     </div>
 
-    <!-- রেজাল্ট পেজ -->
     <div id="resultPage" class="hidden">
         <h1>🎉 ফলাফল</h1>
         <div class="result-box" id="resultBox"></div>
@@ -121,7 +118,6 @@
 </div>
 
 <script>
-    // ============ আপনার Google Sheet থেকে সরাসরি লোড ============
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/export?format=csv&gid=1317046795";
     
     let questions = [];
@@ -152,7 +148,6 @@
             const rows = csvData.split('\n').filter(row => row.trim());
             questions = [];
             
-            // আপনার ফরম্যাট অনুযায়ী পার্সিং (প্রথম সারি হেডার বাদ)
             for(let i = 1; i < rows.length; i++) {
                 const cols = parseCSVLine(rows[i]);
                 if(cols.length >= 6 && cols[0].trim()) {
@@ -167,9 +162,8 @@
                 }
             }
             
-            if(questions.length === 0) throw new Error("কোন প্রশ্ন খুঁজে পাওয়া যায়নি");
+            if(questions.length === 0) throw new Error("কোন প্রশ্ন নেই");
             
-            // কুইজ শুরু
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('quizPage').classList.remove('hidden');
             document.getElementById('totalQ').innerText = questions.length;
@@ -177,13 +171,12 @@
             startQuiz();
             
         } catch(error) {
-            alert("❌ প্রশ্ন লোড করতে সমস্যা হয়েছে!\n\n" + error.message);
+            alert("❌ প্রশ্ন লোড হয়নি!\n" + error.message);
             document.getElementById('loadMsg').classList.add('hidden');
             document.querySelector('#loginPage button').disabled = false;
         }
     }
     
-    // CSV লাইন পার্স করার ফাংশন (কমা এবং উদ্ধৃতি হ্যান্ডেল করে)
     function parseCSVLine(line) {
         const result = [];
         let current = "";
@@ -268,7 +261,6 @@
             <p><strong>📞 WhatsApp:</strong> ${studentPhone}</p>
             <p><strong>✅ সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
             <p><strong>⭐ প্রাপ্ত নম্বর:</strong> <span class="score">${percentage}%</span></p>
-            <p style="margin-top: 15px;">📅 ${new Date().toLocaleString()}</p>
         `;
         
         saveResultToSheet();
@@ -281,8 +273,7 @@
             name: studentName,
             phone: studentPhone,
             score: userScore,
-            total: questions.length,
-            percentage: (userScore / questions.length * 100).toFixed(2)
+            total: questions.length
         };
         
         try {
@@ -292,9 +283,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            console.log("রেজাল্ট সেভ হয়েছে");
+            console.log("Saved");
         } catch(e) {
-            console.log("রেজাল্ট সেভ হয়নি কিন্তু ফলাফল দেখানো হচ্ছে");
+            console.log("Save failed");
         }
     }
     
