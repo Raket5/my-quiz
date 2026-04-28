@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT</title>
+    <title>ICT1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -16,26 +16,25 @@
             background: white; padding: 30px; border-radius: 15px;
             max-width: 600px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        h1 { text-align: center; color: #1a73e8; margin-bottom: 25px; font-size: 24px; }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 25px; }
         input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 16px; outline: none; }
-        input:focus { border-color: #1a73e8; }
         button {
             width: 100%; padding: 14px; background: #1a73e8; color: white;
             border: none; border-radius: 8px; font-size: 16px; font-weight: bold;
             cursor: pointer; transition: 0.3s;
         }
         button:hover { background: #1557b0; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        button:disabled { background: #ccc; }
         .timer { text-align: right; color: #dc3545; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
-        .question { font-size: 18px; font-weight: 600; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; line-height: 1.5; }
+        .question { font-size: 18px; font-weight: 600; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; line-height: 1.6; }
         .option {
             background: white; border: 2px solid #e9ecef; padding: 12px;
-            margin: 8px 0; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s;
         }
         .option:hover { border-color: #1a73e8; background: #f0f7ff; }
         .selected { background: #e8f0fe !important; border-color: #1a73e8 !important; }
         .hidden { display: none; }
-        .result-box { background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; line-height: 2; }
+        .result-box { background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; line-height: 1.8; }
         .score { font-size: 2.5em; color: #28a745; font-weight: bold; }
         .loading { text-align: center; padding: 20px; color: #666; font-weight: bold; }
     </style>
@@ -69,7 +68,7 @@
 </div>
 
 <script>
-    // আপনার প্রোভাইড করা লিঙ্কগুলো এখানে সেট করা হয়েছে
+    // আপনার লিঙ্কগুলো এখানে আপডেট করা হয়েছে
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyHNFMm3xFw8XBnISvkBhkzFUH5nFD1rkPz9KwM_9m0wg2J1FeTt5ugSMLnv_zYEiR/exec";
 
@@ -82,7 +81,6 @@
     let studentName = "";
     let studentPhone = "";
 
-    // CSV সঠিকভাবে পার্স করার ফাংশন (কমা হ্যান্ডেল করার জন্য)
     function parseCSV(text) {
         const rows = [];
         const lines = text.split(/\r?\n/);
@@ -139,7 +137,7 @@
                 }
             }
 
-            if (questions.length === 0) throw new Error("শিটে কোনো প্রশ্ন পাওয়া যায়নি!");
+            if (questions.length === 0) throw new Error("প্রশ্ন লোড করা সম্ভব হয়নি।");
 
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('quizPage').classList.remove('hidden');
@@ -205,10 +203,10 @@
             <p><strong>নাম:</strong> ${studentName}</p>
             <p><strong>WhatsApp:</strong> ${studentPhone}</p>
             <p><strong>সঠিক উত্তর:</strong> ${userScore} / ${questions.length}</p>
-            <p><strong>প্রাপ্ত নম্বর:</strong> <span class="score">${percent}%</span></p>
+            <p><strong>স্কোর:</strong> <span class="score">${percent}%</span></p>
         `;
 
-        // Google Sheets এ ডাটা পাঠানো
+        // Apps Script এ রেজাল্ট সেভ করার রিকোয়েস্ট
         fetch(SCRIPT_URL, {
             method: "POST",
             mode: "no-cors",
@@ -219,8 +217,7 @@
                 score: userScore,
                 total: questions.length
             })
-        }).then(() => console.log("Result saved successfully!"))
-          .catch(err => console.error("Error saving result:", err));
+        });
     }
 </script>
 </body>
