@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT Quiz - Day 1</title>
+    <title>ICT Quiz - Day</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; color: #fff; }
@@ -57,8 +57,11 @@
 </div>
 
 <script>
+    // আপনার পাবলিশ করা প্রশ্ন শিটের CSV লিঙ্ক
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRz139u6UTqfYp_H_IERxQVMwfcVCNp8ChVdZFV4S-RD1D3p6fQT7iV38BtQ9NSJGeWMkbWYOSQtrW5/pub?gid=1317046795&single=true&output=csv";
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyA6Q4pwMgHO-N9GyPWT2eklD8a_JgCoNmkSOP0QrM_9m0wg2J1FeTt5ugSMLnv_zYEiR/exec";
+    
+    // আপনার সর্বশেষ Web App URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRnZMe0kEJDL7wlu9i4hmPc9as-7YW3eVP9OvdTwLeCNkfkmRWl0B0TvuJ7XfC2CfQ/exec";
 
     let questions = [];
     let currentIndex = 0;
@@ -83,24 +86,31 @@
             const data = await response.text();
             const rows = data.split(/\r?\n/).map(row => row.split(','));
             
+            questions = [];
+            // শিটের কলাম অনুযায়ী প্রশ্ন লোড করা
             for(let i=1; i<rows.length; i++) {
                 if(rows[i][0]) {
                     questions.push({
-                        q: rows[i][0].replace(/"/g, ""),
-                        a: rows[i][1].replace(/"/g, ""),
-                        b: rows[i][2].replace(/"/g, ""),
-                        c: rows[i][3].replace(/"/g, ""),
-                        d: rows[i][4].replace(/"/g, ""),
-                        ans: rows[i][5].replace(/"/g, "").toLowerCase().trim()
+                        q: rows[i][0].replace(/"/g, ""), // Question
+                        a: rows[i][1].replace(/"/g, ""), // OptionA
+                        b: rows[i][2].replace(/"/g, ""), // OptionB
+                        c: rows[i][3].replace(/"/g, ""), // OptionC
+                        d: rows[i][4].replace(/"/g, ""), // OptionD
+                        ans: rows[i][5].replace(/"/g, "").toLowerCase().trim() // Correct Answer
                     });
                 }
+            }
+
+            if(questions.length === 0) {
+                alert("⚠️ কোনো প্রশ্ন পাওয়া যায়নি!");
+                return;
             }
 
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('quizPage').classList.remove('hidden');
             loadQuestion();
         } catch (e) {
-            alert("⚠️ প্রশ্ন লোড করা যায়নি!");
+            alert("⚠️ প্রশ্ন লোড করা যায়নি! ইন্টারনেট চেক করুন।");
         }
     }
 
@@ -150,7 +160,7 @@
         const per = ((userScore / questions.length) * 100).toFixed(2);
         
         try {
-            // ডাটা সেভ করার রিকোয়েস্ট
+            // গুগল শিটে ডাটা পাঠানো
             await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
@@ -162,7 +172,7 @@
                 })
             });
 
-            // ৩ সেকেন্ড অপেক্ষা করানো যেন ইউজার বুঝতে পারে সেভ হচ্ছে
+            // অ্যানিমেশন দেখানোর জন্য সামান্য বিরতি
             setTimeout(() => {
                 document.getElementById('loadingPage').classList.add('hidden');
                 document.getElementById('resultPage').classList.remove('hidden');
@@ -175,7 +185,7 @@
             }, 2500);
 
         } catch (error) {
-            document.getElementById('loadingPage').innerHTML = "<p style='color:red'>সেভ করতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।</p>";
+            document.getElementById('loadingPage').innerHTML = "<p style='color:red'>সেভ করতে সমস্যা হয়েছে।</p>";
         }
     }
 </script>
