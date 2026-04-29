@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT Quiz - Day</title>
+    <title>ICT Exam</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; color: #fff; }
@@ -30,14 +30,14 @@
 
 <div class="container">
     <div id="loginPage">
-        <h1>🎓 ICT Quiz Day</h1>
+        <h1>🎓 ICT 2nd Day</h1>
         <input type="text" id="studentName" placeholder="আপনার নাম">
         <input type="text" id="studentPhone" placeholder="WhatsApp নম্বর">
         <button onclick="startQuiz()">📝 পরীক্ষা শুরু করুন</button>
     </div>
 
     <div id="quizPage" class="hidden">
-        <div class="timer">⏱️ সময়: <span id="timeLeft">30</span> সে.</div>
+        <div class="timer">⏱️ সময়: <span id="timeLeft">30</span> সে.</div>
         <div class="question" id="questionText"></div>
         <div id="optionsList"></div>
         <button onclick="nextQuestion()">পরবর্তী প্রশ্ন ➡</button>
@@ -76,8 +76,21 @@
         studentName = document.getElementById('studentName').value.trim();
         studentPhone = document.getElementById('studentPhone').value.trim();
 
-        if (!studentName || !studentPhone) {
-            alert("❌ নাম এবং মোবাইল নম্বর দিন!");
+        // ১. নামের ভ্যালিডেশন: সংখ্যা থাকা চলবে না এবং অন্তত ২ অক্ষরের হতে হবে
+        const namePattern = /^[a-zA-Z\s. ]+$/; 
+        if (studentName.length < 2) {
+            alert("❌ দয়া করে আপনার সঠিক নাম লিখুন (অন্তত ২ অক্ষর)!");
+            return;
+        }
+        if (!namePattern.test(studentName)) {
+            alert("❌ নামে কোনো সংখ্যা বা বিশেষ চিহ্ন ব্যবহার করা যাবে না!");
+            return;
+        }
+
+        // ২. মোবাইল নম্বরের ভ্যালিডেশন: ১১ ডিজিট এবং শুরুটা ০১ হতে হবে
+        const phonePattern = /^01[3-9]\d{8}$/; 
+        if (!phonePattern.test(studentPhone)) {
+            alert("❌ একটি সঠিক ১১ ডিজিটের WhatsApp নম্বর দিন (যেমন: 017xxxxxxxx)!");
             return;
         }
 
@@ -87,7 +100,7 @@
             const rows = data.split(/\r?\n/).map(row => row.split(','));
             
             questions = [];
-            // শিটের কলাম অনুযায়ী প্রশ্ন লোড করা
+            // শিটের কলাম অনুযায়ী প্রশ্ন লোড করা
             for(let i=1; i<rows.length; i++) {
                 if(rows[i][0]) {
                     questions.push({
@@ -102,7 +115,7 @@
             }
 
             if(questions.length === 0) {
-                alert("⚠️ কোনো প্রশ্ন পাওয়া যায়নি!");
+                alert("⚠️ কোনো প্রশ্ন পাওয়া যায়নি!");
                 return;
             }
 
@@ -110,7 +123,7 @@
             document.getElementById('quizPage').classList.remove('hidden');
             loadQuestion();
         } catch (e) {
-            alert("⚠️ প্রশ্ন লোড করা যায়নি! ইন্টারনেট চেক করুন।");
+            alert("⚠️ প্রশ্ন লোড করা যায়নি! ইন্টারনেট চেক করুন।");
         }
     }
 
@@ -185,7 +198,7 @@
             }, 2500);
 
         } catch (error) {
-            document.getElementById('loadingPage').innerHTML = "<p style='color:red'>সেভ করতে সমস্যা হয়েছে।</p>";
+            document.getElementById('loadingPage').innerHTML = "<p style='color:red'>সেভ করতে সমস্যা হয়েছে।</p>";
         }
     }
 </script>
